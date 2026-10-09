@@ -28,8 +28,9 @@ bb_spec = bb-tree/SPECS/betterbird.spec
 locales = cs de en-GB es-ES fr it ja nl pl pt-BR pt-PT ru sv-SE uk zh-CN
 locale_files = $(addprefix downloads/langpacks/,$(addsuffix .xpi,$(locales)))
 bb_mozconfig_marker = ^\#\#\#\# Betterbird required build configuration
+outdir ?= $(CURDIR)
 rpm_args = --define "_topdir $(CURDIR)/bb-tree" \
-	--define "_srcrpmdir $(CURDIR)" \
+	--define "_srcrpmdir $(abspath $(outdir))" \
 	--define "_sourcedir $(CURDIR)/bb-tree/SOURCES" \
 	--define "_specdir $(CURDIR)/bb-tree/SPECS"
 
@@ -37,6 +38,7 @@ rpm_args = --define "_topdir $(CURDIR)/bb-tree" \
 all source-package: srpm
 srpm: stage-5.stamp
 	rpmspec -P $(bb_spec) > /dev/null
+	mkdir -p "$(outdir)"
 	rpmbuild -bs $(rpm_args) $(bb_spec)
 convert: stage-5.stamp
 fetch: $(SRC_RPM) $(SOURCE_ARCHIVE) $(locale_files) $(THUNDERBIRD_PATCHES)/.git
