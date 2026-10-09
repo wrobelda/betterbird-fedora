@@ -1,0 +1,17 @@
+/src.unpack/
+/bb-tree/
+/bb-preptest/
+/upstream-patches/
+/thunderbird-patches
+/downloads/
+/*.src.rpm
+/*.source.tar.xz
+/*-langpacks-*.tar.xz
+/stage-*.stamp
+/tmp.*
+/lp-*/
+/bb-brand/
+/build.log
+/prep.log
+/mock-result/
+__pycache__/
