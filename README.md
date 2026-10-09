@@ -31,7 +31,8 @@ make srpm
 
 `make check` checks source integrity and runs the conversion tests.
 `make srpm` writes the source RPM to the checkout directory.
-Build the resulting source RPM with COPR or Mock to produce installable RPMs.
+Use `outdir=/path/to/output` to choose another destination.
+Build the resulting source RPM with Mock to produce installable RPMs locally.
 
 `make clean` removes the generated build tree and conversion records.
 It retains downloaded sources, the patches checkout, and completed source RPMs.
