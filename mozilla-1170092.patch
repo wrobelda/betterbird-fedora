@@ -1,0 +1,97 @@
+diff -up thunderbird-152.0/extensions/pref/autoconfig/src/nsReadConfig.cpp.1170092-etc-conf thunderbird-152.0/extensions/pref/autoconfig/src/nsReadConfig.cpp
+--- thunderbird-152.0/extensions/pref/autoconfig/src/nsReadConfig.cpp.1170092-etc-conf	2026-06-12 19:58:03.000000000 +0200
++++ thunderbird-152.0/extensions/pref/autoconfig/src/nsReadConfig.cpp	2026-06-22 17:56:54.068493301 +0200
+@@ -268,8 +268,20 @@ nsresult nsReadConfig::openAndEvaluateJS
+ #endif  // defined(MOZ_WIDGET_GTK)
+ 
+     rv = NS_NewLocalFileInputStream(getter_AddRefs(inStr), jsFile);
+-    if (NS_FAILED(rv)) return rv;
++    if (NS_FAILED(rv)) {
++      // Look for cfg file in /etc/<application>/pref
++      rv = NS_GetSpecialDirectory(NS_APP_PREFS_SYSTEM_CONFIG_DIR,
++                                  getter_AddRefs(jsFile));
++      NS_ENSURE_SUCCESS(rv, rv);
+ 
++      rv = jsFile->AppendNative(nsLiteralCString("pref"));
++      NS_ENSURE_SUCCESS(rv, rv);
++      rv = jsFile->AppendNative(nsDependentCString(aFileName));
++      NS_ENSURE_SUCCESS(rv, rv);
++
++      rv = NS_NewLocalFileInputStream(getter_AddRefs(inStr), jsFile);
++      NS_ENSURE_SUCCESS(rv, rv);
++    }
+   } else {
+     nsAutoCString location("resource://gre/defaults/autoconfig/");
+     location += aFileName;
+diff -up thunderbird-152.0/modules/libpref/Preferences.cpp.1170092-etc-conf thunderbird-152.0/modules/libpref/Preferences.cpp
+--- thunderbird-152.0/modules/libpref/Preferences.cpp.1170092-etc-conf	2026-06-12 19:58:10.000000000 +0200
++++ thunderbird-152.0/modules/libpref/Preferences.cpp	2026-06-22 17:56:54.069017777 +0200
+@@ -5157,6 +5157,9 @@ nsresult Preferences::InitInitialObjects
+   //
+   // Thus, in the omni.jar case, we always load app-specific default
+   // preferences from omni.jar, whether or not `$app == $gre`.
++  //
++  // At very end load configuration from system config location:
++  // - /etc/firefox/pref/*.js
+ 
+   nsresult rv = NS_ERROR_FAILURE;
+   UniquePtr<nsZipFind> find;
+diff -up thunderbird-152.0/toolkit/xre/nsXREDirProvider.cpp.1170092-etc-conf thunderbird-152.0/toolkit/xre/nsXREDirProvider.cpp
+--- thunderbird-152.0/toolkit/xre/nsXREDirProvider.cpp.1170092-etc-conf	2026-06-12 19:58:23.000000000 +0200
++++ thunderbird-152.0/toolkit/xre/nsXREDirProvider.cpp	2026-06-22 19:47:37.170112709 +0200
+@@ -81,6 +81,9 @@
+ #  include <sys/stat.h>
+ #  include <unistd.h>
+ #endif
++#ifdef XP_UNIX
++#  include "nsIXULAppInfo.h"
++#endif
+ #ifdef XP_IOS
+ #  include "UIKitDirProvider.h"
+ #endif
+@@ -518,6 +521,17 @@ nsXREDirProvider::GetFile(const char* aP
+     rv = file->AppendNative(nsLiteralCString(PREF_OVERRIDE_DIRNAME));
+     NS_ENSURE_SUCCESS(rv, rv);
+     rv = EnsureDirectoryExists(file);
++  } else if (!strcmp(aProperty, NS_APP_PREFS_SYSTEM_CONFIG_DIR)) {
++    nsCString sysConfigDir = nsLiteralCString("/etc/");
++    nsCOMPtr<nsIXULAppInfo> appInfo = do_GetService("@mozilla.org/xre/app-info;1");
++    if (!appInfo)
++      return NS_ERROR_NOT_AVAILABLE;
++    nsCString appName;
++    appInfo->GetName(appName);
++    ToLowerCase(appName);
++    sysConfigDir.Append(appName);
++    NS_NewNativeLocalFile(sysConfigDir, getter_AddRefs(file));
++    rv = EnsureDirectoryExists(file);
+   } else {
+     // We don't know anything about this property. Fail without warning, because
+     // otherwise we'll get too much warning spam due to
+@@ -574,6 +588,16 @@ nsXREDirProvider::GetFiles(const char* a
+     }
+ #endif
+ 
++    // Add /etc/<application>/pref/ directory if it exists
++    nsCOMPtr<nsIFile> systemPrefDir;
++    rv = NS_GetSpecialDirectory(NS_APP_PREFS_SYSTEM_CONFIG_DIR,
++                                getter_AddRefs(systemPrefDir));
++    if (NS_SUCCEEDED(rv)) {
++      rv = systemPrefDir->AppendNative(nsLiteralCString("pref"));
++      if (NS_SUCCEEDED(rv))
++        directories.AppendObject(systemPrefDir);
++      }
++
+     rv = NS_NewArrayEnumerator(aResult, directories, NS_GET_IID(nsIFile));
+   } else if (!strcmp(aProperty, NS_APP_CHROME_DIR_LIST)) {
+     // NS_APP_CHROME_DIR_LIST is only used to get default (native) icons
+diff -up thunderbird-152.0/xpcom/io/nsAppDirectoryServiceDefs.h.1170092-etc-conf thunderbird-152.0/xpcom/io/nsAppDirectoryServiceDefs.h
+--- thunderbird-152.0/xpcom/io/nsAppDirectoryServiceDefs.h.1170092-etc-conf	2026-06-12 19:58:24.000000000 +0200
++++ thunderbird-152.0/xpcom/io/nsAppDirectoryServiceDefs.h	2026-06-22 17:56:54.071183188 +0200
+@@ -56,6 +56,7 @@
+ #define NS_APP_PREFS_DEFAULTS_DIR_LIST "PrefDL"
+ #define NS_APP_PREFS_OVERRIDE_DIR \
+   "PrefDOverride"  // Directory for per-profile defaults
++#define NS_APP_PREFS_SYSTEM_CONFIG_DIR          "PrefSysConf"   // Directory with system-wide configuration
+ 
+ #define NS_APP_USER_PROFILE_50_DIR "ProfD"
+ #define NS_APP_USER_PROFILE_LOCAL_50_DIR "ProfLD"

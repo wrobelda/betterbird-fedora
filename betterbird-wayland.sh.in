@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+# Run Betterbird under Wayland
+#
+export MOZ_ENABLE_WAYLAND=1
+exec __PREFIX__/bin/betterbird "$@"

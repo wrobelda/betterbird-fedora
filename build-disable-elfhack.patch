@@ -1,0 +1,12 @@
+diff -up firefox-115.0.2/toolkit/moz.configure.disable-elfhack firefox-115.0.2/toolkit/moz.configure
+--- firefox-115.0.2/toolkit/moz.configure.disable-elfhack	2023-07-18 12:21:22.507358334 +0200
++++ firefox-115.0.2/toolkit/moz.configure	2023-07-18 12:52:55.972727498 +0200
+@@ -1520,7 +1520,7 @@ with only_when("--enable-compile-environ
+                     "Cannot enable elfhack with lld."
+                     " Use --enable-linker=bfd, --enable-linker=gold, or --disable-elf-hack"
+                 )
+-            return True
++            return False
+ 
+         set_config("USE_ELF_HACK", use_elf_hack)
+ 

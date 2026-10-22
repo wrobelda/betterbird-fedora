@@ -1,8 +1,0 @@
-Betterbird is a fine-tuned version of Mozilla Thunderbird, Thunderbird on
-steroids, if you will.
-Betterbird is better than Thunderbird in three ways: It contains new
-features exclusive to Betterbird, it contains bug fixes exclusive to
-Betterbird and it contains fixes that Thunderbird may ship at a later stage.
-Betterbird is a soft fork of Mozilla Thunderbird, closely following the
-Thunderbird releases, therefore avoiding the mistakes of other forks which
-quickly lost track of upstream Thunderbird.

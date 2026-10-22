@@ -4,9 +4,9 @@ Fedora packaging for [Betterbird](https://www.betterbird.eu/), an enhanced
 version of Thunderbird. This project combines Fedora Thunderbird packaging
 with Betterbird source changes and branding.
 
-This project adapts the
+This project is based on the
 [betterbird-debian](https://salsa.debian.org/iskunk/betterbird-debian)
-conversion scripts to Fedora’s RPM packaging.
+conversion scripts adapted to Fedora’s RPM packaging.
 See [Betterbird issue #544](https://github.com/Betterbird/thunderbird-patches/issues/544)
 for the original Debian packaging discussion.
 
@@ -20,8 +20,8 @@ Do not open the same profile in both programs at once.
 
 ## Building
 
-The Makefile downloads the required sources and produces a source RPM,
-which contains the source code and RPM build instructions.
+The Makefile downloads the required Thunderbird, Betterbird, and Fedora sources
+and produces an src.rpm with source.
 Run these commands from a checkout on Fedora with the RPM packaging tools installed:
 
 ```console
@@ -35,4 +35,4 @@ Use `outdir=/path/to/output` to choose another destination.
 Build the resulting source RPM with Mock to produce installable RPMs locally.
 
 `make clean` removes the generated build tree and conversion records.
-It retains downloaded sources, the patches checkout, and completed source RPMs.
+It retains downloaded sources and src.rpm files.

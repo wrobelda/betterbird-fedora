@@ -1,0 +1,23 @@
+diff -up thunderbird-128.1.0/build/unix/stdc++compat/stdc++compat.cpp.0001-GLIBCXX-fix-for-GCC-12 thunderbird-128.1.0/build/unix/stdc++compat/stdc++compat.cpp
+--- thunderbird-128.1.0/build/unix/stdc++compat/stdc++compat.cpp.0001-GLIBCXX-fix-for-GCC-12	2024-08-09 12:24:05.444162943 +0200
++++ thunderbird-128.1.0/build/unix/stdc++compat/stdc++compat.cpp	2024-08-09 12:24:05.460162972 +0200
+@@ -83,6 +83,19 @@ __glibcxx_assert_fail(const char* __file
+ }  // namespace std
+ #endif
+ 
++#if _GLIBCXX_RELEASE >= 12
++namespace std {
++
++/* This avoids the GLIBCXX_3.4.30 symbol version. */
++void __attribute__((weak))
++__glibcxx_assert_fail(const char* __file, int __line, const char* __function,
++                      const char* __condition) {
++  MOZ_CRASH();
++}
++
++}  // namespace std
++#endif
++
+ /* While we generally don't build with exceptions, we have some host tools
+  * that do use them. libstdc++ from GCC 5.0 added exception constructors with
+  * char const* argument. Older versions only have a constructor with

@@ -1,0 +1,121 @@
+#!/bin/bash
+#
+# Startup script for the fedora.us Betterbird RPM
+# (based on the Mozilla RPM launch script)
+#
+
+##
+## Variables
+##
+MOZ_ARCH=$(uname -m)
+case $MOZ_ARCH in
+        x86_64 | s390x | sparc64 )
+                MOZ_LIB_DIR="__PREFIX__/lib64"
+                SECONDARY_LIB_DIR="__PREFIX__/lib"
+                ;;
+        * )
+                MOZ_LIB_DIR="__PREFIX__/lib"
+                SECONDARY_LIB_DIR="__PREFIX__/lib64"
+                ;;
+esac
+
+if [ ! -x $MOZ_LIB_DIR/betterbird/betterbird ]; then
+    if [ ! -x $SECONDARY_LIB_DIR/betterbird/betterbird ]; then
+        echo "Error: $MOZ_LIB_DIR/betterbird/betterbird not found"
+        if [ -d $SECONDARY_LIB_DIR ]; then
+            echo "       $SECONDARY_LIB_DIR/betterbird/betterbird not found"
+        fi
+        exit 1
+    fi
+    MOZ_LIB_DIR="$SECONDARY_LIB_DIR"
+fi
+
+MOZ_DIST_BIN="$MOZ_LIB_DIR/betterbird"
+MOZ_PROGRAM="$MOZ_DIST_BIN/betterbird"
+MOZ_LAUNCHER="$MOZ_DIST_BIN/betterbird"
+
+##
+## Set MOZ_ENABLE_PANGO is no longer used because Pango is enabled by default
+## you may use MOZ_DISABLE_PANGO=1 to force disabling of pango
+##
+#MOZ_DISABLE_PANGO=1
+#export MOZ_DISABLE_PANGO
+
+##
+## Set MOZ_APP_LAUNCHER for gnome-session
+##
+export MOZ_APP_LAUNCHER="__PREFIX__/bin/betterbird"
+
+##
+## Disable the GNOME crash dialog, Moz has it's own
+## 
+GNOME_DISABLE_CRASH_DIALOG=1
+export GNOME_DISABLE_CRASH_DIALOG
+
+##
+## Disable the SLICE allocator (rhbz#1014858)
+##
+export G_SLICE=always-malloc
+
+# Flatpak specific environment variables
+%FLATPAK_ENV_VARS%
+
+##
+## Allow downgrade because during distro upgrade the build time can be
+## older in newer version than the previous one.
+##
+
+##
+## To disable the use of Firefox localization, set MOZ_DISABLE_LANGPACKS=1
+## in your environment before launching Firefox.
+##
+#
+# MOZ_DISABLE_LANGPACKS=1
+# export MOZ_DISABLE_LANGPACKS
+#
+
+##
+## Use D-Bus remote exclusively when there's Wayland display.
+##
+if [ "$WAYLAND_DISPLAY" ]; then
+  export MOZ_DBUS_REMOTE=1
+fi
+
+__WAYLAND_X11_PLACEHOLDER__
+
+# BEAST fix (rhbz#1005611)
+NSS_SSL_CBC_RANDOM_IV=${NSS_SSL_CBC_RANDOM_IV-1}
+export NSS_SSL_CBC_RANDOM_IV
+
+# Prepare command line arguments
+script_args=""
+pass_arg_count=0
+while [ $# -gt $pass_arg_count ]
+do
+  case "$1" in
+    -g | --debug)
+      script_args="$script_args -g"
+      debugging=1
+      shift
+      ;;
+    -d | --debugger)
+      if [ $# -gt 1 ]; then
+        script_args="$script_args -d $2"
+        shift 2
+      else
+        shift
+      fi
+      ;;
+    *)
+      # Move the unrecognized argument to the end of the list.
+      arg="$1"
+      shift
+      set -- "$@" "$arg"
+      pass_arg_count=`expr $pass_arg_count + 1`
+      ;;
+  esac
+done
+
+# Don't throw "old profile" dialog box.
+
+exec $MOZ_PROGRAM "$@"

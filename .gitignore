@@ -1,15 +1,12 @@
-/src.unpack/
 /bb-tree/
-/bb-patched/
 /bb-preptest/
-/upstream-patches/
 /thunderbird-patches
 /downloads/
 /*.src.rpm
 /*.source.tar.xz
 /*-langpacks-*.tar.xz
-/stage-*.stamp
-/tmp.*
+/cbindgen-vendor.tar.xz
+/thunderbird-patches-*.tar.gz
 /lp-*/
 /bb-brand/
 /build.log

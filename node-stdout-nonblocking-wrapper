@@ -1,0 +1,10 @@
+#!/bin/sh
+if [ -f /usr/bin/node ]; then
+  exec /usr/bin/node "$@" 2>&1 | cat -
+elif [ -f /usr/bin/node-22 ]; then
+  exec /usr/bin/node-22 "$@" 2>&1 | cat -
+else
+  echo "node executable not found in /usr/bin/node or /usr/bin/node-22"
+  exit 1
+fi
+

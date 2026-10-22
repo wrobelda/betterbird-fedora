@@ -1,0 +1,12 @@
+diff -up thunderbird-128.9.2/toolkit/components/protobuf/src/google/protobuf/port_def.inc.orig thunderbird-128.9.2/toolkit/components/protobuf/src/google/protobuf/port_def.inc
+--- thunderbird-128.9.2/toolkit/components/protobuf/src/google/protobuf/port_def.inc.orig	2025-04-24 14:10:37.830416804 +0000
++++ thunderbird-128.9.2/toolkit/components/protobuf/src/google/protobuf/port_def.inc	2025-04-24 14:11:31.910416804 +0000
+@@ -255,7 +255,7 @@
+ #error PROTOBUF_TAILCALL was previously defined
+ #endif
+ #if __has_cpp_attribute(clang::musttail) && !defined(__arm__) && \
+-    !defined(_ARCH_PPC) && !defined(__wasm__) &&                 \
++    !defined(_ARCH_PPC) && !defined(__s390x__) && !defined(__wasm__) && \
+     !(defined(_MSC_VER) && defined(_M_IX86)) &&                  \
+     !(defined(__NDK_MAJOR__) && __NDK_MAJOR <= 24)
+ #  ifndef PROTO2_OPENSOURCE
