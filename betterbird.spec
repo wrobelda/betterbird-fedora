@@ -89,12 +89,12 @@ ExcludeArch: armv7hl
 %global __requires_exclude ^(%%(find %{buildroot}%{mozappdir} -name '*.so' | xargs -n1 basename | sort -u | paste -s -d '|' -))
 
 # Betterbird release and Thunderbird ESR release-candidate build
-%global bb_release 10
+%global bb_release 11
 %global tb_build 1
 
 Summary:        Betterbird graphical mail and newsgroup client
 Name:           betterbird
-Version:        153.4.0
+Version:        153.5.0
 Release:        %autorelease -e bb%{bb_release}
 URL:            https://www.betterbird.eu/
 License:        MPL-2.0 OR GPL-2.0-or-later OR LGPL-2.0-or-later
