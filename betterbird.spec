@@ -65,7 +65,6 @@ ExcludeArch: armv7hl
 %define objdir       objdir
 %define mozappdir    %{_libdir}/betterbird
 
-%define official_branding 0
 #define pre_version 
 
 %define enable_mozilla_crashreporter 0
@@ -113,7 +112,6 @@ Source3:        get-calendar-langpacks.sh
 Source4:        cbindgen-vendor.tar.xz
 
 Source10:       thunderbird-mozconfig
-Source11:       thunderbird-mozconfig-branded
 Source12:       betterbird-redhat-default-prefs.js
 Source21:       betterbird.sh.in
 Source25:       eu.betterbird.Betterbird-symbolic.svg
@@ -160,13 +158,6 @@ Patch406:       mozilla-1170092.patch
 
 # Bundled expat backported patches
 
-%if %{official_branding}
-# Required by Mozilla Corporation
-
-%else
-# Not yet approved by Mozillla Corporation
-
-%endif
 
 BuildRequires: make
 BuildRequires:  git-core
@@ -310,13 +301,6 @@ debug %{name}, you want to install %{name}-debuginfo instead.
 %patch -P83 -p1 -b .build-seccomp
 
 
-%if %{official_branding}
-# Required by Mozilla Corporation
-
-%else
-# Not yet approved by Mozilla Corporation
-
-%endif
 
 # Apply Betterbird patches after the Fedora patches. The Mac and Windows
 # branding patches do not apply to Linux builds.
@@ -334,9 +318,6 @@ sh %{SOURCE100} thunderbird-patches/%{bb_series}
 grep -q '^#### Betterbird required build configuration' thunderbird-patches/%{bb_series}/mozconfig-Linux
 sed -n '/^#### Betterbird required build configuration/,$p' \
     thunderbird-patches/%{bb_series}/mozconfig-Linux >> .mozconfig
-%if %{official_branding}
-%{__cat} %{SOURCE11} >> .mozconfig
-%endif
 
 echo "ac_add_options --prefix=\"%{_prefix}\"" >> .mozconfig
 echo "ac_add_options --libdir=\"%{_libdir}\"" >> .mozconfig
