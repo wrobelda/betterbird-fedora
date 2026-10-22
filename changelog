@@ -1,0 +1,10 @@
+* Thu Oct 22 2026 Dawid Wróbel <me@dawidwrobel.com> - 153.4.0-3.bb10
+- Apply the upstream Betterbird fixes instead of local workarounds
+- Use the hard-copy spec instead of converting Fedora's source package
+- Number releases and changelog entries with rpmautospec
+
+* Thu Oct 22 2026 Betterbird Fedora packaging - 153.4.0-2.bb10
+- Register the Linux systray integration on all architectures
+
+* Tue Oct 20 2026 Betterbird Fedora packaging - 153.4.0-1.bb10
+- Package Betterbird 153.4.0esr-bb10 with Fedora build integration

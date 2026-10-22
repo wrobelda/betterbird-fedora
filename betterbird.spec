@@ -96,7 +96,7 @@ ExcludeArch: armv7hl
 Summary:        Betterbird graphical mail and newsgroup client
 Name:           betterbird
 Version:        153.4.0
-Release:        2.bb%{bb_release}%{?dist}
+Release:        %autorelease -e bb%{bb_release}
 URL:            https://www.betterbird.eu/
 License:        MPL-2.0 OR GPL-2.0-or-later OR LGPL-2.0-or-later
 
@@ -771,6 +771,4 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 
 %changelog
-* Thu Oct 22 2026 Betterbird Fedora packaging - 153.4.0-2.bb10
-- Package Betterbird 153.4.0esr-bb10 with Fedora build integration
-- Register the Linux systray integration on all architectures
+%autochangelog

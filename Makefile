@@ -32,12 +32,16 @@ outdir ?= $(CURDIR)
 rpm_args = --define "_topdir $(CURDIR)/bb-tree" \
 	--define "_srcrpmdir $(abspath $(outdir))" \
 	--define "_sourcedir $(CURDIR)"
+# rpmautospec numbers the release and writes the changelog from Git history.
+process_spec = mkdir -p bb-tree/SPECS && \
+	rpmautospec process-distgit betterbird.spec bb-tree/SPECS/betterbird.spec
 
 .PHONY: all srpm sources fetch check-inputs check prep verify clean
 all: srpm
 srpm: sources
+	$(process_spec)
 	mkdir -p "$(outdir)"
-	rpmbuild -bs $(rpm_args) betterbird.spec
+	rpmbuild -bs $(rpm_args) bb-tree/SPECS/betterbird.spec
 sources: $(source_archive) $(bb_archive) cbindgen-vendor.tar.xz $(bb_langpacks)
 fetch: $(source_archive) $(bb_archive) cbindgen-vendor.tar.xz $(locale_files)
 
@@ -79,9 +83,11 @@ $(bb_langpacks): $(langpacks) $(source_archive) $(bb_tree)/.prepared langpack-co
 
 # Exercise actual patch application without installing compiler dependencies.
 prep: sources
-	rpmbuild -bp --nodeps $(rpm_args) betterbird.spec
+	$(process_spec)
+	rpmbuild -bp --nodeps $(rpm_args) bb-tree/SPECS/betterbird.spec
 verify:
-	rpmspec -q --srpm --qf '%{NAME} %{VERSION}-%{RELEASE}\n' betterbird.spec
+	$(process_spec)
+	rpmspec -q --srpm --qf '%{NAME} %{VERSION}-%{RELEASE}\n' bb-tree/SPECS/betterbird.spec
 
 clean:
 	rm -rf bb-tree $(bb_tree) $(langpacks) $(bb_langpacks)
