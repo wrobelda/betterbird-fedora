@@ -161,14 +161,7 @@ for xpi_path in "$ORIG_DIR"/distro/*.xpi; do
 	done
 
 	# Apply the locale-specific script (operating relative to its root).
-	# Normalize Windows line endings before the shell parses redirections.
-	# TODO: Remove the temporary script and normalization once the pinned
-	# upstream release includes this fix:
-	# https://github.com/Betterbird/thunderbird-patches/pull/619
-	locale_script=$WORK/lp-script-$locale.sh
-	sed 's/\r$//' "$locale_dir" > "$locale_script"
-	( cd "$stage" && sh -e "$locale_script" )
-	rm "$locale_script"
+	( cd "$stage" && sh -e "$locale_dir" )
 
 	# Fedora derives the extension ID from the XPI filename. Keep the locale
 	# filename and store the Betterbird extension ID in manifest.json.

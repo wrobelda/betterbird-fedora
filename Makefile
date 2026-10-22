@@ -19,12 +19,16 @@ THUNDERBIRD_PATCHES = upstream-patches
 PACKAGER = Betterbird Fedora packaging
 PATCH_DROP_LIST =
 PATCH_PLATFORM_DROP_LIST = branding/03-branding-mac.patch branding/04-branding.patch
-# Patches from patches/, applied in comm/ after the Betterbird series.
-# linux-systray-all-architectures.patch:
-#   https://github.com/Betterbird/thunderbird-patches/pull/623
-LOCAL_PATCHES = linux-systray-all-architectures.patch
+# Additional Betterbird fixes from their main branch or PRs, applied on top
+# of the tagged patch set.
+# https://github.com/Betterbird/thunderbird-patches/pull/619
+# https://github.com/Betterbird/thunderbird-patches/pull/623
+BB_FIXES = thunderbird-patches-locale-script-line-endings.patch \
+	thunderbird-patches-linux-systray-all-architectures.patch
 
 PATCH_DIR = $(THUNDERBIRD_PATCHES)/$(BB_VERSION)
+BB_PATCHED = bb-patched
+BB_PATCHED_DIR = $(BB_PATCHED)/$(BB_VERSION)
 SOURCE_ARCHIVE = thunderbird-$(TB_SOURCE_VERSION).source.tar.xz
 langpack_base = thunderbird-langpacks-$(TB_SOURCE_VERSION)-build$(TB_BUILD)
 bb_langpack_base = betterbird-langpacks-$(TB_SOURCE_VERSION)-build$(TB_BUILD)
@@ -89,7 +93,7 @@ tmp.inputs: FORCE
 	@printf '%s\n' '$(SRC_RPM)' '$(TB_VERSION)' '$(TB_SOURCE_VERSION)' '$(TB_BUILD)' \
 		'$(BB_VERSION)' '$(BB_TAG)' '$(BB_COMMIT)' '$(BB_RELEASE_TAG)' \
 		'$(THUNDERBIRD_PATCHES)' '$(PACKAGER)' '$(PATCH_DROP_LIST)' \
-		'$(PATCH_PLATFORM_DROP_LIST)' '$(LOCAL_PATCHES)' > $@.new
+		'$(PATCH_PLATFORM_DROP_LIST)' '$(BB_FIXES)' > $@.new
 	@cmp -s $@.new $@ && rm $@.new || mv $@.new $@
 
 src.unpack: $(SRC_RPM) Makefile | check-inputs
@@ -98,8 +102,15 @@ src.unpack: $(SRC_RPM) Makefile | check-inputs
 	rpm2cpio $(SRC_RPM) | (cd $@ && cpio -idm --quiet)
 	touch $@
 
+$(BB_PATCHED)/.stamp: $(BB_FIXES) Makefile tmp.inputs | check-patches
+	rm -rf $(BB_PATCHED)
+	mkdir $(BB_PATCHED)
+	git -C $(THUNDERBIRD_PATCHES) archive HEAD | tar -x -C $(BB_PATCHED)
+	for p in $(BB_FIXES); do patch -p1 --fuzz=0 -s -d $(BB_PATCHED) -i "$(CURDIR)/$$p"; done
+	touch $@
+
 stage-1.stamp: src.unpack $(SOURCE_ARCHIVE) Makefile sources.sha512 tmp.inputs \
-		$(addprefix patches/,$(LOCAL_PATCHES)) | check-patches
+		$(BB_PATCHED)/.stamp | check-patches
 	rm -rf bb-tree/SPECS bb-tree/SOURCES
 	mkdir -p bb-tree/SPECS bb-tree/SOURCES
 	cp -a --reflink=auto src.unpack/. bb-tree/SOURCES/
@@ -115,19 +126,13 @@ stage-1.stamp: src.unpack $(SOURCE_ARCHIVE) Makefile sources.sha512 tmp.inputs \
 	# launcher must not remove or replace Thunderbird's profile extensions.
 	perl -0777 -pi -e 's/^MOZ_(LANGPACKS_DIR|EXTENSIONS_PROFILE_DIR)=.*\n//mg; s/^export MOZ_ALLOW_DOWNGRADE=1\n//mg; s/^##\n## Automatically installed langpacks.*?(?=^# BEAST fix)//ms' bb-tree/SOURCES/betterbird.sh.in
 	mkdir bb-tree/SOURCES/bb-patches
-	(cd $(PATCH_DIR) && tar cf - series series-moz branding bugs cherrypicks features misc) | \
+	(cd $(BB_PATCHED_DIR) && tar cf - series series-moz branding bugs cherrypicks features misc) | \
 		(cd bb-tree/SOURCES/bb-patches && tar xf -)
 	for p in $(PATCH_DROP_LIST) $(PATCH_PLATFORM_DROP_LIST); do \
 		for s in bb-tree/SOURCES/bb-patches/series bb-tree/SOURCES/bb-patches/series-moz; do \
 			P=$$p perl -pi -e '$$a=$$_; chomp($$a); $$a=~s/\s.*//; $$a eq $$ENV{P} and s/^/#drop#/' $$s; \
 		done; \
 		rm "bb-tree/SOURCES/bb-patches/$$p"; \
-	done
-	mkdir bb-tree/SOURCES/bb-patches/fedora
-	printf '\n' >> bb-tree/SOURCES/bb-patches/series
-	for p in $(LOCAL_PATCHES); do \
-		cp "patches/$$p" bb-tree/SOURCES/bb-patches/fedora/; \
-		echo "fedora/$$p" >> bb-tree/SOURCES/bb-patches/series; \
 	done
 	(cd bb-tree/SOURCES && tar cJf bb-patches.tar.xz bb-patches)
 	rm -rf bb-tree/SOURCES/bb-patches
@@ -138,7 +143,7 @@ $(langpack_base).tar.xz: $(locale_files) sources.sha512
 
 stage-2.stamp: stage-1.stamp $(langpack_base).tar.xz langpack-conv.sh
 	./langpack-conv.sh "$(CURDIR)" "$(CURDIR)/$(SOURCE_ARCHIVE)" \
-		$(THUNDERBIRD_PATCHES) $(BB_VERSION) "$(CURDIR)" "$(langpack_base)" "$(bb_langpack_base)"
+		$(BB_PATCHED) $(BB_VERSION) "$(CURDIR)" "$(langpack_base)" "$(bb_langpack_base)"
 	mv "$(bb_langpack_base).tar.xz" bb-tree/SOURCES/
 	touch $@
 
@@ -172,6 +177,6 @@ verify: stage-5.stamp
 
 clean:
 	rm -f stage-*.stamp
-	rm -rf src.unpack bb-tree tmp.*
+	rm -rf src.unpack bb-tree $(BB_PATCHED) tmp.*
 
 .DELETE_ON_ERROR:
