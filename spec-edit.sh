@@ -38,7 +38,7 @@ sub 's/^Name:\s+\K.*/betterbird/'
 sub77 's/^Summary:\s+\K.*/Betterbird graphical mail and newsgroup client/m'
 sub 's/^URL:\s+\K.*/https:\/\/www.betterbird.eu\//'
 sub "s/^Version:\\s+\\K.*/$rpm_version/"
-sub "s/^Release:\\s+\\K.*/1.$bb_tag%{?dist}/"
+sub "s/^Release:\\s+\\K.*/2.$bb_tag%{?dist}/"
 # The generated release is explicit and does not use Fedora's autorelease.
 sub77 's/^## START: Set by rpmautospec\n.*?^## END: Set by rpmautospec\n\n//ms'
 

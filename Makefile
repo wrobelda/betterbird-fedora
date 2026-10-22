@@ -19,6 +19,10 @@ THUNDERBIRD_PATCHES = upstream-patches
 PACKAGER = Betterbird Fedora packaging
 PATCH_DROP_LIST =
 PATCH_PLATFORM_DROP_LIST = branding/03-branding-mac.patch branding/04-branding.patch
+# Patches from patches/, applied in comm/ after the Betterbird series.
+# linux-systray-all-architectures.patch:
+#   https://github.com/Betterbird/thunderbird-patches/pull/623
+LOCAL_PATCHES = linux-systray-all-architectures.patch
 
 PATCH_DIR = $(THUNDERBIRD_PATCHES)/$(BB_VERSION)
 SOURCE_ARCHIVE = thunderbird-$(TB_SOURCE_VERSION).source.tar.xz
@@ -85,7 +89,7 @@ tmp.inputs: FORCE
 	@printf '%s\n' '$(SRC_RPM)' '$(TB_VERSION)' '$(TB_SOURCE_VERSION)' '$(TB_BUILD)' \
 		'$(BB_VERSION)' '$(BB_TAG)' '$(BB_COMMIT)' '$(BB_RELEASE_TAG)' \
 		'$(THUNDERBIRD_PATCHES)' '$(PACKAGER)' '$(PATCH_DROP_LIST)' \
-		'$(PATCH_PLATFORM_DROP_LIST)' > $@.new
+		'$(PATCH_PLATFORM_DROP_LIST)' '$(LOCAL_PATCHES)' > $@.new
 	@cmp -s $@.new $@ && rm $@.new || mv $@.new $@
 
 src.unpack: $(SRC_RPM) Makefile | check-inputs
@@ -94,7 +98,8 @@ src.unpack: $(SRC_RPM) Makefile | check-inputs
 	rpm2cpio $(SRC_RPM) | (cd $@ && cpio -idm --quiet)
 	touch $@
 
-stage-1.stamp: src.unpack $(SOURCE_ARCHIVE) Makefile sources.sha512 tmp.inputs | check-patches
+stage-1.stamp: src.unpack $(SOURCE_ARCHIVE) Makefile sources.sha512 tmp.inputs \
+		$(addprefix patches/,$(LOCAL_PATCHES)) | check-patches
 	rm -rf bb-tree/SPECS bb-tree/SOURCES
 	mkdir -p bb-tree/SPECS bb-tree/SOURCES
 	cp -a --reflink=auto src.unpack/. bb-tree/SOURCES/
@@ -117,6 +122,12 @@ stage-1.stamp: src.unpack $(SOURCE_ARCHIVE) Makefile sources.sha512 tmp.inputs |
 			P=$$p perl -pi -e '$$a=$$_; chomp($$a); $$a=~s/\s.*//; $$a eq $$ENV{P} and s/^/#drop#/' $$s; \
 		done; \
 		rm "bb-tree/SOURCES/bb-patches/$$p"; \
+	done
+	mkdir bb-tree/SOURCES/bb-patches/fedora
+	printf '\n' >> bb-tree/SOURCES/bb-patches/series
+	for p in $(LOCAL_PATCHES); do \
+		cp "patches/$$p" bb-tree/SOURCES/bb-patches/fedora/; \
+		echo "fedora/$$p" >> bb-tree/SOURCES/bb-patches/series; \
 	done
 	(cd bb-tree/SOURCES && tar cJf bb-patches.tar.xz bb-patches)
 	rm -rf bb-tree/SOURCES/bb-patches
@@ -149,7 +160,7 @@ stage-4.stamp: stage-3.stamp spec-edit.sh description.txt
 	touch $@
 
 stage-5.stamp: stage-4.stamp
-	printf '\n%%changelog\n* %s %s - $(TB_VERSION)-1.$(BB_RELEASE_TAG)\n- Package Betterbird $(BB_TAG) with Fedora build integration\n' \
+	printf '\n%%changelog\n* %s %s - $(TB_VERSION)-2.$(BB_RELEASE_TAG)\n- Package Betterbird $(BB_TAG) with Fedora build integration\n- Register the Linux systray integration on all architectures\n' \
 		"$$(date '+%a %b %d %Y')" "$(PACKAGER)" >> $(bb_spec)
 	touch $@
 

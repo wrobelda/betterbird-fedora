@@ -117,7 +117,7 @@ Old changelog.
             self.assertNotIn("%{mozappdir}/rnp-cli", result)
             self.assertNotIn("%{mozappdir}/rnpkeys", result)
             self.assertIn("Version: 153.4.0", result)
-            self.assertIn("Release: 1.bb10%{?dist}", result)
+            self.assertIn("Release: 2.bb10%{?dist}", result)
             self.assertIn(source_url, result)
             self.assertIn("%setup -q -n thunderbird-%{version}", result)
             self.assertIn("Source10: thunderbird-mozconfig", result)
