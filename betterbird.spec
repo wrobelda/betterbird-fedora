@@ -89,12 +89,12 @@ ExcludeArch: armv7hl
 %global __requires_exclude ^(%%(find %{buildroot}%{mozappdir} -name '*.so' | xargs -n1 basename | sort -u | paste -s -d '|' -))
 
 # Betterbird release and Thunderbird ESR release-candidate build
-%global bb_release 11
+%global bb_release 12
 %global tb_build 1
 
 Summary:        Betterbird graphical mail and newsgroup client
 Name:           betterbird
-Version:        153.5.0
+Version:        153.6.0
 Release:        %autorelease -e bb%{bb_release}
 URL:            https://www.betterbird.eu/
 License:        MPL-2.0 OR GPL-2.0-or-later OR LGPL-2.0-or-later
@@ -140,13 +140,6 @@ Patch83:        build-seccomp.patch
 # PPC fix
 
 # Fedora specific patches
-
-# Additional Betterbird fixes from their main branch or PRs, applied on top
-# of the tagged patch set.
-# https://github.com/Betterbird/thunderbird-patches/pull/619
-Patch900:       thunderbird-patches-locale-script-line-endings.patch
-# https://github.com/Betterbird/thunderbird-patches/pull/623
-Patch901:       thunderbird-patches-linux-systray-all-architectures.patch
 
 # Upstream patches
 Patch402:       mozilla-526293.patch
@@ -306,8 +299,6 @@ debug %{name}, you want to install %{name}-debuginfo instead.
 # branding patches do not apply to Linux builds.
 mkdir thunderbird-patches
 tar -xzf %{SOURCE102} -C thunderbird-patches --strip-components=1
-%patch -P 900 -p1 -d thunderbird-patches
-%patch -P 901 -p1 -d thunderbird-patches
 sed -i -e '\|^branding/03-branding-mac\.patch|s|^|#|' \
        -e '\|^branding/04-branding\.patch|s|^|#|' \
        thunderbird-patches/%{bb_series}/series
