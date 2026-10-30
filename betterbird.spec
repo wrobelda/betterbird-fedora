@@ -358,7 +358,6 @@ echo "ac_add_options --enable-system-ffi" >> .mozconfig
 
 %ifarch aarch64
 echo "ac_add_options --disable-elf-hack" >> .mozconfig
-echo "ac_add_options --disable-jit" >> .mozconfig
 %endif
 
 %ifnarch %{ix86} x86_64
